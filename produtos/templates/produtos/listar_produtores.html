@@ -1,0 +1,11 @@
+<h1>Lista de Produtores</h1>
+<a href="{% url 'cadastrar_produtor' %}">Cadastrar Novo Produtor</a>
+<ul>
+    {% for produtor in produtores %}
+        <li>
+            {{ produtor.nome }} - {{ produtor.email }}
+            <a href="{% url 'editar_produtor' produtor.pk %}">Editar</a>
+            <a href="{% url 'deletar_produtor' produtor.pk %}">Deletar</a>
+        </li>
+    {% endfor %}
+</ul>

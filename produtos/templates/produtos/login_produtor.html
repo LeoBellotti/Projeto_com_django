@@ -1,0 +1,24 @@
+<!-- produtos/templates/produtos/login_produtor.html -->
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login Produtor</title>
+</head>
+<body>
+    <h1>Login como Produtor</h1>
+    <form action="" method="post">
+        {% csrf_token %}
+        <label for="username">Usuário:</label>
+        <input type="text" id="username" name="username" required>
+        <br>
+        <label for="password">Senha:</label>
+        <input type="password" id="password" name="password" required>
+        <br>
+        <button type="submit">Entrar</button>
+        <a href="{% url 'pagina_inicial' %}">Voltar</a>
+    </form>
+</body>
+</html>
