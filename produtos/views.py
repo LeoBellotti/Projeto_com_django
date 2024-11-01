@@ -1,5 +1,5 @@
 
-from produtos.models import Produto
+from produtos.models import Produto, PaginaInicial
 from produtos.forms import ProdutoForm
 from django.shortcuts import render, redirect, get_object_or_404
 from .forms import ProdutorForm
@@ -54,8 +54,9 @@ def login_produtor(request):
 
 from django.shortcuts import render
 
-def pagina_inicial(request):
-    return render(request, 'produtos/pagina_inicial.html')
+def exibir_pagina_inicial(request):
+    conteudo = PaginaInicial.objects.last()  # Pega o conteúdo mais recente
+    return render(request, 'produtos/pagina_inicial.html', {'conteudo': conteudo})
 
 def listar_produtores(request):
     produtores = Produtor.objects.all()

@@ -99,4 +99,11 @@ class Produtor(models.Model):
     def __str__(self):
         return self.nome
 
+class PaginaInicial(models.Model):
+    titulo = models.CharField(max_length=200, default="Bem-vindo à Cervejaria")
+    descricao = models.TextField()
+    imagem = models.ImageField(upload_to='imagens/', blank=True, null=True)
+    atualizado_em = models.DateTimeField(auto_now=True)
 
+    def __str__(self):
+        return self.titulo

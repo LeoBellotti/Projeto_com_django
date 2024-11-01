@@ -3,11 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bem-vindo à Cervejaria</title>
+    <title>{{ conteudo.titulo }}</title>
 </head>
 <body>
-    <h1>Bem-vindo à Cervejaria!</h1>
-    <a href="{% url 'login_gerente' %}">Login Gerente</a><br>
-    <a href="{% url 'login_produtor' %}">Login Produtor</a>
+    <h1>{{ conteudo.titulo }}</h1>
+    <p>{{ conteudo.descricao }}</p>
+    {% if conteudo.imagem %}
+        <img src="{{ conteudo.imagem.url }}" alt="Imagem da Página Inicial">
+    {% endif %}
 </body>
 </html>
