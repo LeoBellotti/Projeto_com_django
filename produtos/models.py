@@ -101,8 +101,9 @@ class Produtor(models.Model):
 
 class PaginaInicial(models.Model):
     titulo = models.CharField(max_length=200, default="Bem-vindo à Cervejaria")
-    descricao = models.TextField()
-    imagem = models.ImageField(upload_to='imagens/', blank=True, null=True)
+    imagem_fundo = models.ImageField(upload_to='imagens/', blank=True, null=True)  # Campo para a imagem de fundo
+    link_login_gerente = models.URLField(max_length=200, default="/login/gerente/")
+    link_login_produtor = models.URLField(max_length=200, default="/login/produtor/")
     atualizado_em = models.DateTimeField(auto_now=True)
 
     def __str__(self):
