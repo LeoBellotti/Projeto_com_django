@@ -1,0 +1,13 @@
+<div>
+    <h2>Lista de Produtos</h2>
+    <a href="{% url 'adicionar_produto' %}" class="btn">Adicionar Produto</a>
+    <ul>
+        {% for produto in produtos %}
+            <li>
+                {{ produto.nome }} - {{ produto.tipo }} - {{ produto.preco }}
+                <a href="{% url 'editar_produto' produto.pk %}">Editar</a>
+                <a href="{% url 'excluir_produto' produto.pk %}">Excluir</a>
+            </li>
+        {% endfor %}
+    </ul>
+</div>

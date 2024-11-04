@@ -1,0 +1,220 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Menu do Gerente</title>
+    <style>
+        /* Estilos gerais */
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            height: 100vh;
+            margin: 0;
+            background-image: url("{% static 'imagens/capa_site.webp' %}");
+            background-size: cover;
+            background-position: center;
+            color: #fff;
+        }
+        .container {
+            width: 95%;
+            max-width: 1200px;
+            height: 85vh;
+            margin-top: 20px;
+            padding-bottom: 20px;
+            text-align: center;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 20px;
+            border-radius: 10px;
+            box-sizing: border-box;
+        }
+        h1 {
+            font-size: 36px;
+            margin-bottom: 20px;
+            color: #fff;
+        }
+        .menu {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 20px;
+        }
+        .menu button {
+            background-color: #4CAF50;
+            border: 2px solid #fff;
+            padding: 10px 25px;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 15px;
+            cursor: pointer;
+            color: #fff;
+        }
+        .content-box {
+            border: 2px solid #fff;
+            padding: 30px;
+            min-height: 55vh;
+            display: flex;
+            justify-content: flex-start; /* Alinha o conteúdo no topo */
+            align-items: flex-start; /* Remove o alinhamento centralizado */
+            flex-direction: column;
+            font-size: 20px;
+            color: #333;
+            background-color: #fff;
+            border-radius: 10px;
+            color: #000;
+            overflow: auto;
+            padding-top: 10px; /* Adiciona um pequeno espaçamento no topo */
+        }
+        .logout-button {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            padding: 10px 20px;
+            background-color: #ff4d4d;
+            border: none;
+            color: #fff;
+            font-weight: bold;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+            color: #333;
+        }
+        .btn-edit, .btn-delete {
+            padding: 5px 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            color: #fff;
+        }
+        .btn-edit {
+            background-color: #4CAF50;
+        }
+        .btn-delete {
+            background-color: #f44336;
+        }
+        .btn {
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #4CAF50;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        .form-container {
+            max-width: 600px;
+            margin: auto;
+            background-color: #f9f9f9;
+            padding: 20px;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+     <a href="{% url 'pagina_inicial' %}" class="logout-button">Logout</a>
+
+    <div class="container">
+        <h1>Menu do Gerente</h1>
+
+        <!-- Bloco de mensagens -->
+        {% if messages %}
+            <div class="messages">
+                {% for message in messages %}
+                    <div class="message {{ message.tags }}">{{ message }}</div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <div class="menu">
+            <a href="{% url 'menu_gerente_action' 'inicio' %}"><button>INICIO</button></a>
+            <a href="{% url 'menu_gerente_action' 'gerenciar' %}"><button>Gerenciar Produtos</button></a>
+            <a href="{% url 'menu_gerente_action' 'listar_produtores' %}"><button>Listar Produtores</button></a>
+            <a href="{% url 'menu_gerente_action' 'relatorio_estoque' %}"><button>Relatório do Estoque</button></a>
+        </div>
+        <div class="content-box" id="description">
+            {% if action == 'inicio' %}
+                <p><b>Bem-vindo ao painel do gerente. Selecione uma opção acima para mais detalhes.</b></p>
+
+            {% elif action == 'gerenciar' %}
+                <h2>Lista de Produtos</h2>
+                <a href="{% url 'menu_gerente_action' 'add' %}" class="btn">Adicionar Produto</a>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Nome</th>
+                            <th>Tipo</th>
+                            <th>Preço</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for produto in produtos %}
+                            <tr>
+                                <td>{{ produto.nome }}</td>
+                                <td>{{ produto.tipo }}</td>
+                                <td>{{ produto.preco }}</td>
+                                <td>
+                                    <a href="{% url 'menu_gerente_action_pk' 'edit' produto.pk %}" class="btn-edit">Editar</a>
+                                    <a href="{% url 'menu_gerente_action_pk' 'delete' produto.pk %}" class="btn-delete">Excluir</a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+
+            {% elif action == 'add' %}
+                <h2>Adicionar Produto</h2>
+                <div class="form-container">
+                    <form method="post">
+                        {% csrf_token %}
+                        {{ form.as_p }}
+                        <button type="submit">Salvar Produto</button>
+                    </form>
+                </div>
+
+            {% elif action == 'edit' %}
+                <h2>Editar Produto</h2>
+                <div class="form-container">
+                    <form method="post">
+                        {% csrf_token %}
+                        {{ form.as_p }}
+                        <button type="submit">Salvar Alterações</button>
+                    </form>
+                </div>
+
+            {% elif action == 'delete' %}
+                <h2>Excluir Produto</h2>
+                <p>Tem certeza de que deseja excluir "{{ produto.nome }}"?</p>
+                <form method="post">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-delete" style="width: auto;">Confirmar Exclusão</button>
+                </form>
+
+            {% elif action == 'listar_produtores' %}
+                <p><b>Listagem de produtores aqui.</b></p>
+
+            {% elif action == 'relatorio_estoque' %}
+                <p><b>Relatório do estoque aqui.</b></p>
+            {% endif %}
+        </div>
+    </div>
+</body>
+</html>

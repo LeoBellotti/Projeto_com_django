@@ -1,103 +1,89 @@
 
-from produtos.models import Produto, PaginaInicial
-from produtos.forms import ProdutoForm
+from .models import Produto, PaginaInicial, ConteudoLogin
+from django.contrib.auth import authenticate, login
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
 from django.shortcuts import render, redirect, get_object_or_404
-from .forms import ProdutorForm
-from .models import Produtor
+from .models import Produto
+from .forms import ProdutoForm
 
-
-# View para listar produtos
-def lista_produtos(request):
+@login_required(login_url='login_gerente')  # Especifica o redirecionamento para a página de login
+def menu_gerente(request, action=None, pk=None):
     produtos = Produto.objects.all()
-    return render(request, 'produtos/lista_Produtos.html', {'produtos': produtos})
 
-# View para adicionar um novo produto
-def adicionar_produto(request):
-    if request.method == 'POST':
-        form = ProdutoForm(request.POST)
-        if form.is_valid():
+    if action == 'gerenciar':
+        return render(request, 'produtos/menu_gerente.html', {
+            'produtos': produtos,
+            'action': 'gerenciar',
+
+        })
+
+    elif action == 'add':
+        form = ProdutoForm(request.POST or None)
+        if request.method == 'POST' and form.is_valid():
             form.save()
-            return redirect('lista_produtos')
-    else:
-        form = ProdutoForm()
-    return render(request, 'produtos/adicionar_Produto.html', {'form': form})
+            messages.success(request, 'Produto adicionado com sucesso.')
+            return redirect('menu_gerente_action', action='gerenciar')
+        return render(request, 'produtos/menu_gerente.html', {
+            'form': form,
+            'action': 'add',
 
-# View para editar um produto
-def editar_produto(request, pk):
-    produto = Produto.objects.get(pk=pk)
-    if request.method == 'POST':
-        form = ProdutoForm(request.POST, instance=produto)
-        if form.is_valid():
+        })
+
+    elif action == 'edit' and pk:
+        produto = get_object_or_404(Produto, pk=pk)
+        form = ProdutoForm(request.POST or None, instance=produto)
+        if request.method == 'POST' and form.is_valid():
             form.save()
-            return redirect('lista_produtos')
-    else:
-        form = ProdutoForm(instance=produto)
-    return render(request, 'produtos/editar_Produto.html', {'form': form})
+            messages.success(request, 'Produto atualizado com sucesso.')
+            return redirect('menu_gerente_action', action='gerenciar')
+        return render(request, 'produtos/menu_gerente.html', {
+            'form': form,
+            'produto': produto,
+            'action': 'edit',
 
-# View para deletar um produto
-def deletar_produto(request, pk):
-    produto = Produto.objects.get(pk=pk)
-    if request.method == 'POST':
-        produto.delete()
-        return redirect('lista_produtos')
-    return render(request, 'produtos/deletar_Produto.html', {'produto': produto})
+        })
 
-# produtos/views.py
+    elif action == 'delete' and pk:
+        produto = get_object_or_404(Produto, pk=pk)
+        if request.method == 'POST':
+            produto.delete()
+            messages.success(request, 'Produto excluído com sucesso.')
+            return redirect('menu_gerente_action', action='gerenciar')
+        return render(request, 'produtos/menu_gerente.html', {
+            'produto': produto,
+            'action': 'delete',
+
+        })
+
+    return render(request, 'produtos/menu_gerente.html', {
+        'produtos': produtos,
+        'action': action if action else 'inicio',
+
+    })
 
 def login_gerente(request):
-    return render(request, 'produtos/login_gerente.html')  # Template do login do gerente
+    conteudo = get_object_or_404(ConteudoLogin, tipo_login='gerente')
 
-def login_produtor(request):
-    return render(request, 'produtos/login_produtor.html')  # Template do login do vendedor/produtor
-# produtos/views.py
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        password = request.POST.get('password')
 
+        user = authenticate(request, username=username, password=password)
+        if user is not None:
+            login(request, user)
+            return redirect('menu_gerente')
+        else:
+            messages.error(request, 'Usuário ou senha incorretos.')
 
-from django.shortcuts import render
+    return render(request, 'produtos/login_gerente.html', {'conteudo': conteudo})
+
 
 def exibir_pagina_inicial(request):
-    conteudo = PaginaInicial.objects.last()  # Pega o conteúdo mais recente
+    conteudo = PaginaInicial.objects.last()
     return render(request, 'produtos/pagina_inicial.html', {'conteudo': conteudo})
 
-def listar_produtores(request):
-    produtores = Produtor.objects.all()
-    return render(request, 'produtos/listar_produtores.html', {'produtores': produtores})
 
-def cadastrar_produtor(request):
-    if request.method == 'POST':
-        form = ProdutorForm(request.POST)
-        if form.is_valid():
-            form.save()
-            return redirect('listar_produtores')
-    else:
-        form = ProdutorForm()
-    return render(request, 'produtos/cadastrar_produtor.html', {'form': form})
-def editar_produtor(request, pk):
-    produtor = get_object_or_404(Produtor, pk=pk)
-    if request.method == 'POST':
-        form = ProdutorForm(request.POST, instance=produtor)
-        if form.is_valid():
-            form.save()
-            return redirect('listar_produtores')
-    else:
-        form = ProdutorForm(instance=produtor)
-    return render(request, 'produtos/editar_produtor.html', {'form': form})
-
-def deletar_produtor(request, pk):
-    produtor = get_object_or_404(Produtor, pk=pk)
-    if request.method == 'POST':
-        produtor.delete()
-        return redirect('listar_produtores')
-    return render(request, 'produtos/deletar_produtor.html', {'produtor': produtor})
-
-
-def gerenciar_produtores(request):
-    if request.method == 'POST':
-        form = ProdutorForm(request.POST)
-        if form.is_valid():
-            form.save()
-            return redirect('gerenciar_produtores')  # Redireciona após salvar
-    else:
-        form = ProdutorForm()
-
-    produtores = Produtor.objects.all()  # Lista todos os produtores
-    return render(request, 'produtos/gerenciar_produtores.html', {'form': form, 'produtores': produtores})
+def login_produtor(request):
+    conteudo = get_object_or_404(ConteudoLogin, tipo_login='produtor')
+    return render(request, 'produtos/login_produtor.html', {'conteudo': conteudo})
