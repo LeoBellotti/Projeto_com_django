@@ -1,0 +1,32 @@
+<h2>Alterações no Estoque</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Produto</th>
+                        <th>Produtor</th>
+                        <th>Quantidade Alterada</th>
+                        <th>Tipo de Alteração</th>
+                        <th>Data da Alteração</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for relatorio in relatorios %}
+                        <tr>
+                            <td>{{ relatorio.produto.nome }}</td>
+                            <td>{{ relatorio.produtor.username }}</td>
+                            <td>{{ relatorio.quantidade_alterada }}</td>
+                            <td>{{ relatorio.tipo_alteracao }}</td>
+                            <td>{{ relatorio.data_alteracao }}</td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="5">Nenhuma alteração no estoque registrada.</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</body>
+</html>

@@ -1,0 +1,9 @@
+{% extends "produtos/menu_gerente.html" %}
+{% block content %}
+<h2>Excluir Produtor</h2>
+<p>Tem certeza de que deseja excluir o produtor "{{ produtor.nome }}"?</p>
+<form method="post">
+    {% csrf_token %}
+    <button type="submit">Confirmar Exclusão</button>
+</form>
+{% endblock %}

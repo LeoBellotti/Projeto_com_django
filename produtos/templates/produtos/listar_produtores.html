@@ -1,11 +1,28 @@
-<h1>Lista de Produtores</h1>
-<a href="{% url 'cadastrar_produtor' %}">Cadastrar Novo Produtor</a>
-<ul>
-    {% for produtor in produtores %}
-        <li>
-            {{ produtor.nome }} - {{ produtor.email }}
-            <a href="{% url 'editar_produtor' produtor.pk %}">Editar</a>
-            <a href="{% url 'deletar_produtor' produtor.pk %}">Deletar</a>
-        </li>
-    {% endfor %}
-</ul>
+{% extends "produtos/menu_gerente.html" %}
+{% block content %}
+<h2>Lista de Produtores</h2>
+<a href="{% url 'adicionar_produtor' %}" class="btn">Adicionar Produtor</a>
+<table>
+    <thead>
+        <tr>
+            <th>Nome</th>
+            <th>Email</th>
+            <th>Telefone</th>
+            <th>Ações</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for produtor in produtores %}
+            <tr>
+                <td>{{ produtor.nome }}</td>
+                <td>{{ produtor.email }}</td>
+                <td>{{ produtor.telefone }}</td>
+                <td>
+                    <a href="{% url 'editar_produtor' produtor.pk %}">Editar</a>
+                    <a href="{% url 'excluir_produtor' produtor.pk %}">Excluir</a>
+                </td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

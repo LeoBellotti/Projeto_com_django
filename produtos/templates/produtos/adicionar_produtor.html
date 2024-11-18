@@ -1,0 +1,9 @@
+{% extends "produtos/menu_gerente.html" %}
+{% block content %}
+<h2>Adicionar Produtor</h2>
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Salvar</button>
+</form>
+{% endblock %}

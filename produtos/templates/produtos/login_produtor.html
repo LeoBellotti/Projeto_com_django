@@ -56,6 +56,11 @@
         button:hover {
             background-color: #45a049;
         }
+        .error-message {
+            color: #ff4d4d;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
         a {
             color: #fff;
             text-decoration: none;
@@ -71,6 +76,14 @@
     <div class="container">
         <h1>{{ conteudo.titulo }}</h1>
         <p>{{ conteudo.descricao }}</p>
+
+        <!-- Exibe a mensagem de erro se existir -->
+        {% if messages %}
+            {% for message in messages %}
+                <p class="error-message">{{ message }}</p>
+            {% endfor %}
+        {% endif %}
+
         <form action="" method="post">
             {% csrf_token %}
             <label for="username">Usuário:</label>

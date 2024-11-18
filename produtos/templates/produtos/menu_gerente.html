@@ -6,7 +6,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Menu do Gerente</title>
     <style>
-        /* Estilos gerais */
         body {
             font-family: Arial, sans-serif;
             display: flex;
@@ -55,17 +54,15 @@
             border: 2px solid #fff;
             padding: 30px;
             min-height: 55vh;
+            max-height: 55vh;
             display: flex;
-            justify-content: flex-start; /* Alinha o conteúdo no topo */
-            align-items: flex-start; /* Remove o alinhamento centralizado */
             flex-direction: column;
+            justify-content: flex-start;
+            overflow-y: auto;
             font-size: 20px;
-            color: #333;
             background-color: #fff;
             border-radius: 10px;
             color: #000;
-            overflow: auto;
-            padding-top: 10px; /* Adiciona um pequeno espaçamento no topo */
         }
         .logout-button {
             position: absolute;
@@ -83,18 +80,16 @@
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 20px;
-        }
-        table, th, td {
-            border: 1px solid #ddd;
+            margin-top: 10px;
         }
         th, td {
-            padding: 12px;
+            padding: 10px;
+            border: 1px solid #ddd;
             text-align: left;
         }
         th {
-            background-color: #f2f2f2;
-            color: #333;
+            background-color: #f4f4f4;
+            font-weight: bold;
         }
         .btn-edit, .btn-delete {
             padding: 5px 10px;
@@ -109,27 +104,10 @@
         .btn-delete {
             background-color: #f44336;
         }
-        .btn {
-            padding: 10px 20px;
-            font-size: 16px;
-            background-color: #4CAF50;
-            color: #fff;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            text-decoration: none;
-        }
-        .form-container {
-            max-width: 600px;
-            margin: auto;
-            background-color: #f9f9f9;
-            padding: 20px;
-            border-radius: 10px;
-        }
     </style>
 </head>
 <body>
-     <a href="{% url 'pagina_inicial' %}" class="logout-button">Logout</a>
+    <a href="{% url 'pagina_inicial' %}" class="logout-button">Logout</a>
 
     <div class="container">
         <h1>Menu do Gerente</h1>
@@ -145,23 +123,32 @@
 
         <div class="menu">
             <a href="{% url 'menu_gerente_action' 'inicio' %}"><button>INICIO</button></a>
-            <a href="{% url 'menu_gerente_action' 'gerenciar' %}"><button>Gerenciar Produtos</button></a>
-            <a href="{% url 'menu_gerente_action' 'listar_produtores' %}"><button>Listar Produtores</button></a>
+            <a href="{% url 'menu_gerente_action' 'listar_produtos' %}"><button>Gerenciar Produtos</button></a>
+            <a href="{% url 'menu_gerente_action' 'listar_produtores' %}"><button>Gerenciar Produtores</button></a>
             <a href="{% url 'menu_gerente_action' 'relatorio_estoque' %}"><button>Relatório do Estoque</button></a>
         </div>
+
         <div class="content-box" id="description">
             {% if action == 'inicio' %}
                 <p><b>Bem-vindo ao painel do gerente. Selecione uma opção acima para mais detalhes.</b></p>
 
-            {% elif action == 'gerenciar' %}
+            {% elif action == 'listar_produtos' %}
                 <h2>Lista de Produtos</h2>
-                <a href="{% url 'menu_gerente_action' 'add' %}" class="btn">Adicionar Produto</a>
+                {% if form.non_field_errors %}
+                    <div class="error-message">
+                        {% for error in form.non_field_errors %}
+                            {{ error }}
+                        {% endfor %}
+                    </div>
+                {% endif %}
+                <a href="{% url 'menu_gerente_action' 'adicionar_produto' %}" class="btn">Adicionar Produto</a>
                 <table>
                     <thead>
                         <tr>
                             <th>Nome</th>
                             <th>Tipo</th>
                             <th>Preço</th>
+                            <th>Quantidade</th>
                             <th>Ações</th>
                         </tr>
                     </thead>
@@ -171,16 +158,17 @@
                                 <td>{{ produto.nome }}</td>
                                 <td>{{ produto.tipo }}</td>
                                 <td>{{ produto.preco }}</td>
+                                <td>{{ produto.quantidade }}</td>
                                 <td>
-                                    <a href="{% url 'menu_gerente_action_pk' 'edit' produto.pk %}" class="btn-edit">Editar</a>
-                                    <a href="{% url 'menu_gerente_action_pk' 'delete' produto.pk %}" class="btn-delete">Excluir</a>
+                                    <a href="{% url 'menu_gerente_action_pk' 'editar_produto' produto.pk %}" class="btn-edit">Editar</a>
+                                    <a href="{% url 'menu_gerente_action_pk' 'excluir_produto' produto.pk %}" class="btn-delete">Excluir</a>
                                 </td>
                             </tr>
                         {% endfor %}
                     </tbody>
                 </table>
 
-            {% elif action == 'add' %}
+            {% elif action == 'adicionar_produto' %}
                 <h2>Adicionar Produto</h2>
                 <div class="form-container">
                     <form method="post">
@@ -190,7 +178,7 @@
                     </form>
                 </div>
 
-            {% elif action == 'edit' %}
+            {% elif action == 'editar_produto' %}
                 <h2>Editar Produto</h2>
                 <div class="form-container">
                     <form method="post">
@@ -200,7 +188,7 @@
                     </form>
                 </div>
 
-            {% elif action == 'delete' %}
+            {% elif action == 'excluir_produto' %}
                 <h2>Excluir Produto</h2>
                 <p>Tem certeza de que deseja excluir "{{ produto.nome }}"?</p>
                 <form method="post">
@@ -209,10 +197,95 @@
                 </form>
 
             {% elif action == 'listar_produtores' %}
-                <p><b>Listagem de produtores aqui.</b></p>
+                <h2>Lista de Produtores</h2>
+                <a href="{% url 'adicionar_produtor' %}" class="btn">Cadastrar Produtor</a>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Usuario</th>
+                            <th>Nome</th>
+                            <th>Email</th>
+                            <th>Telefone</th>
+                            <th>CPF</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for produtor in produtores %}
+                            <tr>
+                                <td>{{ produtor.usuario }}</td>
+                                <td>{{ produtor.nome }}</td>
+                                <td>{{ produtor.email }}</td>
+                                <td>{{ produtor.telefone }}</td>
+                                <td>{{ produtor.cpf }}</td>
+                                <td>
+                                    <a href="{% url 'editar_produtor' produtor.pk %}" class="btn-edit">Editar</a>
+                                    <a href="{% url 'excluir_produtor' produtor.pk %}" class="btn-delete">Excluir</a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
 
-            {% elif action == 'relatorio_estoque' %}
-                <p><b>Relatório do estoque aqui.</b></p>
+
+            {% elif action == 'adicionar_produtor' %}
+                <h2>Cadastrar Produtor</h2>
+                <div class="form-container">
+                    <form method="post">
+                        {% csrf_token %}
+                        {{ form.as_p }}  <!-- Exibe o formulário -->
+                        <button type="submit">Salvar Produtor</button>
+                    </form>
+                </div>
+
+
+            {% elif action == 'editar_produtor' %}
+
+                <h2>Editar Produtor</h2>
+                <div class="form-container">
+                    <form method="post">
+                        {% csrf_token %}
+                        {{ form.as_p }}
+                        <button type="submit">Salvar Alterações</button>
+                    </form>
+                </div>
+
+            {% elif action == 'excluir_produtor' %}
+                <h2>Excluir Produtor</h2>
+                <p>Tem certeza de que deseja excluir "{{ produtor.nome }}"?</p>
+                <form method="post">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-delete" style="width: auto;">Confirmar Exclusão</button>
+                </form>
+
+           {% elif action == 'relatorio_estoque' %}
+                <h2>Relatório de Estoque</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Produto</th>
+                            <th>Produtor</th>
+                            <th>Quantidade Alterada</th>
+                            <th>Tipo de Alteração</th>
+                            <th>Data da Alteração</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for relatorio in relatorios %}
+                            <tr>
+                                <td>{{ relatorio.produto.nome }}</td>
+                                <td>{{ relatorio.produtor.username }}</td>
+                                <td>{{ relatorio.quantidade_alterada }}</td>
+                                <td>{{ relatorio.tipo_alteracao }}</td>
+                                <td>{{ relatorio.data_alteracao }}</td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="5">Nenhuma alteração no estoque registrada.</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
             {% endif %}
         </div>
     </div>

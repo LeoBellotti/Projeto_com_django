@@ -1,7 +1,8 @@
-<h1>Editar Produtor</h1>
-<form method="post">
+{% extends "produtos/menu_gerente.html" %}
+{% block content %}
+<h2>Editar Produtor</h2>
+<form method="post" action="{% url 'editar_produtor' produtor.pk %}">
     {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Atualizar</button>
+    <button type="submit">Salvar Alterações</button>
 </form>
-<a href="{% url 'listar_produtores' %}">Voltar</a>
+{% endblock %}

@@ -1,0 +1,183 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Menu do Produtor</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            height: 100vh;
+            margin: 0;
+            background-image: url("{% static 'imagens/capa_site.webp' %}");
+            background-size: cover;
+            background-position: center;
+            color: #fff;
+        }
+        .container {
+            width: 95%;
+            max-width: 1200px;
+            height: 85vh;
+            margin-top: 20px;
+            padding-bottom: 20px;
+            text-align: center;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 20px;
+            border-radius: 10px;
+            box-sizing: border-box;
+        }
+        h1 {
+            font-size: 36px;
+            margin-bottom: 20px;
+            color: #fff;
+        }
+        .menu {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 20px;
+        }
+        .menu button {
+            background-color: #4CAF50;
+            border: 2px solid #fff;
+            padding: 10px 25px;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 15px;
+            cursor: pointer;
+            color: #fff;
+        }
+        .content-box {
+            border: 2px solid #fff;
+            padding: 30px;
+            min-height: 55vh;
+            max-height: 55vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            overflow-y: auto;
+            font-size: 20px;
+            background-color: #fff;
+            border-radius: 10px;
+            color: #000;
+        }
+        .logout-button {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            padding: 10px 20px;
+            background-color: #ff4d4d;
+            border: none;
+            color: #fff;
+            font-weight: bold;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        th, td {
+            padding: 10px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+        th {
+            background-color: #f4f4f4;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <a href="{% url 'pagina_inicial' %}" class="logout-button">Logout</a>
+
+    <div class="container">
+        <h1>Menu do Produtor</h1>
+
+        <div class="menu">
+            <a href="{% url 'menu_produtor_action' 'inicio' %}"><button>INICIO</button></a>
+            <a href="{% url 'menu_produtor_action' 'estoque' %}"><button>Estoque</button></a>
+            <a href="{% url 'menu_produtor_action' 'meus_pedidos' %}"><button>Meus Pedidos</button></a>
+            <a href="{% url 'menu_produtor_action' 'perfil' %}"><button>Meu Perfil</button></a>
+        </div>
+
+        <div class="content-box">
+            {% if messages %}
+                <div class="messages">
+                    {% for message in messages %}
+                        <div class="message {{ message.tags }}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            {% if action == 'estoque' %}
+                <h2>Estoque</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Produto</th>
+                            <th>Tipo</th>
+                            <th>Quantidade em Estoque</th>
+                            <th>Preço</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for produto in produtos %}
+                            <tr>
+                                <td>{{ produto.nome }}</td>
+                                <td>{{ produto.tipo }}</td>
+                                <td>{{ produto.quantidade }}</td>
+                                <td>{{ produto.preco }}</td>
+                                <td>
+                                    <form method="post" action="{% url 'menu_produtor_action' action='estoque' %}">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="produto_id" value="{{ produto.id }}">
+                                        <input type="number" name="quantidade" min="1" required>
+                                        <button type="submit" name="adicionar">Adicionar Estoque</button>
+                                    </form>
+                                    <form method="post" action="{% url 'menu_produtor_action' action='estoque' %}">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="produto_id" value="{{ produto.id }}">
+                                        <input type="number" name="quantidade" min="1" required>
+                                        <button type="submit" name="vender">Vender Estoque</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% elif action == 'perfil' %}
+                <h2>Meu Perfil</h2>
+                <div>
+                    <p><strong>Nome:</strong> {{ produtor.nome }}</p>
+                    <p><strong>Email:</strong> {{ produtor.email }}</p>
+                    <p><strong>Telefone:</strong> {{ produtor.telefone }}</p>
+                    <p><strong>CPF:</strong> {{ produtor.cpf }}</p>
+                    <form method="post">
+                        {% csrf_token %}
+                        <button type="submit">Editar Perfil</button>
+                    </form>
+                </div>
+
+                {% if form %}
+                    <h3>Editar Perfil</h3>
+                    <form method="post">
+                        {% csrf_token %}
+                        {{ form.as_p }}
+                        <button type="submit">Salvar Alterações</button>
+                    </form>
+                {% endif %}
+            {% endif %}
+        </div>
+    </div>
+</body>
+</html>
