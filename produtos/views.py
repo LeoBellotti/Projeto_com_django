@@ -1,6 +1,6 @@
 from django.contrib.auth.hashers import check_password
 from django.contrib.auth.models import User
-from .models import Produto, PaginaInicial, ConteudoLogin, EstoqueChange
+from .models import Produto, PaginaInicial, ConteudoLogin, EstoqueChange, Pedido
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -58,6 +58,8 @@ def menu_gerente(request, action=None, pk=None):
             return redirect(reverse('menu_gerente_action', kwargs={'action': 'listar_produtores'}))
 
         return render(request, 'produtos/menu_gerente.html', {'produtor': produtor, 'action': action})
+
+
 
     elif action == 'listar_produtos':
         produtos = Produto.objects.all()
@@ -117,7 +119,7 @@ def menu_produtor(request, action=None, pk=None):
                 produto = get_object_or_404(Produto, id=produto_id)
 
                 # Adicionar estoque
-                if 'adicionar' in request.POST:
+                if 'entrada' in request.POST:
                     produto.quantidade += quantidade
                     produto.save()
 
@@ -126,12 +128,12 @@ def menu_produtor(request, action=None, pk=None):
                         produto=produto,
                         produtor=request.user,  # Usando o usuário logado (produtor)
                         quantidade_alterada=quantidade,
-                        tipo_alteracao='adicao',  # Tipo da alteração
+                        tipo_alteracao='Entrada Registrada',  # Tipo da alteração
                     )
                     relatorio.save()  # Salva o relatório de alteração no estoque
                     messages.success(request, f"Estoque do produto {produto.nome} atualizado com sucesso!")
 
-                elif 'vender' in request.POST:
+                elif 'remover' in request.POST:
                     if produto.quantidade >= quantidade:
                         produto.quantidade -= quantidade
                         produto.save()
@@ -141,7 +143,7 @@ def menu_produtor(request, action=None, pk=None):
                             produto=produto,
                             produtor=request.user,  # Usando o usuário logado (produtor)
                             quantidade_alterada=quantidade,
-                            tipo_alteracao='venda',  # Tipo da alteração
+                            tipo_alteracao='Remoção Registrada',  # Tipo da alteração
                         )
                         relatorio.save()  # Salva o relatório de alteração no estoque
                         messages.success(request, f"{quantidade} unidades de {produto.nome} foram vendidas.")
@@ -166,12 +168,96 @@ def menu_produtor(request, action=None, pk=None):
             return render(request, 'produtos/menu_produtor.html',
                           {'form': form, 'produtor': produtor, 'action': action})
 
-        return render(request, 'produtos/menu_produtor.html',
-                      {'action': 'inicio'})  # Redireciona para o início se não for encontrado nenhuma ação
+        elif action == 'gerar_pedidos':
+            produtos = Produto.objects.all()  # Todos os produtos disponíveis
+            cart = request.session.get('cart', {})  # Obtém o carrinho da sessão
 
+            if request.method == 'POST':
+                # Adicionar produto ao carrinho
+                if 'adicionar' in request.POST:
+                    produto_id = request.POST.get('produto_id')
+                    quantidade = request.POST.get('quantidade')
+
+                    if produto_id and quantidade:
+                        produto = get_object_or_404(Produto, id=produto_id)
+                        quantidade = int(quantidade)
+
+                        if produto_id in cart:
+                            cart[produto_id] += quantidade
+                        else:
+                            cart[produto_id] = quantidade
+
+                        # Atualizar o carrinho na sessão
+                        request.session['cart'] = cart
+                        messages.success(request, f"{quantidade} unidades do produto {produto.nome} adicionadas ao carrinho.")
+                    return redirect('menu_produtor_action', action='gerar_pedidos')
+
+                # Remover produto do carrinho
+                if 'remover' in request.POST:
+                    produto_id = request.POST.get('produto_id')
+                    if produto_id in cart:
+                        del cart[produto_id]
+                        request.session['cart'] = cart
+                        messages.success(request, "Produto removido do carrinho.")
+                    return redirect('menu_produtor_action', action='gerar_pedidos')
+
+                # Gerar o pedido
+                if 'gerar_pedido' in request.POST:
+                    total_pedido = 0
+
+                    for produto_id, quantidade in cart.items():
+                        produto = Produto.objects.get(id=produto_id)
+                        total = produto.preco * quantidade
+                        total_pedido += total
+
+                        # Criar o pedido no banco de dados
+                        Pedido.objects.create(
+                            produtor=request.user,
+                            produto=produto,
+                            quantidade=quantidade,
+                            total=total
+                        )
+
+                        # Atualizar estoque
+                        produto.quantidade -= quantidade
+                        produto.save()
+
+                        # Registrar a alteração no estoque
+                        RelatorioEstoque.objects.create(
+                            produto=produto,
+                            quantidade_alterada=quantidade,
+                            tipo_alteracao='Venda',
+                            produtor=request.user
+                        )
+
+                    # Limpar o carrinho após o pedido
+                    request.session['cart'] = {}
+                    messages.success(request, f"Pedido gerado com sucesso! Valor total: R$ {total_pedido:.2f}")
+                    return redirect('menu_produtor_action', action='gerar_pedidos')
+
+            # Calcular o total do pedido
+            cart_items = []
+            total_pedido = 0
+            for produto_id, quantidade in cart.items():
+                produto = Produto.objects.get(id=produto_id)
+                total = produto.preco * quantidade
+                cart_items.append({
+                    'produto': produto,
+                    'quantidade': quantidade,
+                    'total': total,
+                })
+                total_pedido += total
+
+            return render(request, 'produtos/menu_produtor.html', {
+                'produtos': produtos,
+                'action': action,
+                'cart_items': cart_items,
+                'total_pedido': total_pedido,
+            })
+
+        return render(request, 'produtos/menu_produtor.html', {'action': 'inicio'})
     else:
-        return redirect('login')  # Se o usuário não estiver autenticado, redireciona para login
-
+        return redirect('login')
 
 def login_gerente(request):
     conteudo = get_object_or_404(ConteudoLogin, tipo_login='gerente')

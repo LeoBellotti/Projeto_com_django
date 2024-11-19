@@ -101,7 +101,7 @@ class EstoqueChange(models.Model):
     produto = models.ForeignKey(Produto, on_delete=models.CASCADE)
     quantidade = models.IntegerField()
     data = models.DateTimeField(auto_now_add=True)
-    tipo_alteracao = models.CharField(max_length=20, choices=[('adicao', 'Adição'), ('venda', 'Venda')])
+    tipo_alteracao = models.CharField(max_length=50)  # Tipo de alteração: 'Entrada' ou 'Remoção'
     produtor = models.ForeignKey(User, on_delete=models.CASCADE)  # Associar ao produtor logado
 
     def __str__(self):
@@ -109,13 +109,20 @@ class EstoqueChange(models.Model):
 
 class RelatorioEstoque(models.Model):
     produto = models.ForeignKey(Produto, on_delete=models.CASCADE)
-    produtor = models.ForeignKey(User, on_delete=models.CASCADE)  # Usando o User ou seu modelo de Produtor
-    quantidade_alterada = models.IntegerField()
-    tipo_alteracao = models.CharField(
-        max_length=20,
-        choices=[('adicao', 'Adição'), ('venda', 'Venda')]
-    )
-    data_alteracao = models.DateTimeField(auto_now_add=True)
+    produtor = models.ForeignKey(User, on_delete=models.CASCADE)  # Relacionamento com o usuário produtor
+    quantidade_alterada = models.PositiveIntegerField()  # Quantidade que foi alterada
+    tipo_alteracao = models.CharField(max_length=50)  # Tipo de alteração: 'Entrada' ou 'Remoção'
+    data_alteracao = models.DateTimeField(auto_now_add=True)  # Data da alteração
 
     def __str__(self):
-        return f'{self.produto.nome} - {self.tipo_alteracao} - {self.quantidade_alterada}'
+        return f"Relatório de {self.produto.nome} - {self.tipo_alteracao} - {self.quantidade_alterada} unidades"
+
+class Pedido(models.Model):
+    produtor = models.ForeignKey(User, on_delete=models.CASCADE)
+    produto = models.ForeignKey(Produto, on_delete=models.CASCADE)
+    quantidade = models.IntegerField()
+    data = models.DateTimeField(auto_now_add=True)
+    total = models.DecimalField(max_digits=10, decimal_places=2)
+
+    def __str__(self):
+        return f"Pedido de {self.produtor.username} - {self.produto.nome} x {self.quantidade}"
