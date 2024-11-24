@@ -45,21 +45,9 @@ class Estoque(models.Model):
 
 
 
-
-
-
-# Modelo para Logs do Sistema
-class LogSistema(models.Model):
-    acao = models.CharField(max_length=255)
-    usuario = models.CharField(max_length=100)
-    data = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return f"{self.acao} por {self.usuario} em {self.data}"
-
 # Modelo para Produtores
 from django.db import models
-from django.contrib.auth.hashers import make_password  # Para hash da senha
+
 
 class Produtor(models.Model):
     usuario = models.CharField(max_length=150, unique=True)  # Nome do usuário
@@ -74,13 +62,7 @@ class Produtor(models.Model):
         db_table = 'produtor'  # Define explicitamente o nome da tabela como 'produtor'
 
     def __str__(self):
-        return self.nome
-
-    def save(self, *args, **kwargs):
-        if self.senha:  # Apenas faz o hash se a senha for fornecida
-            self.senha = make_password(self.senha)
-        super().save(*args, **kwargs)
-
+        return self.usuario
 
 
 class ConteudoLogin(models.Model):
@@ -102,27 +84,47 @@ class EstoqueChange(models.Model):
     quantidade = models.IntegerField()
     data = models.DateTimeField(auto_now_add=True)
     tipo_alteracao = models.CharField(max_length=50)  # Tipo de alteração: 'Entrada' ou 'Remoção'
-    produtor = models.ForeignKey(User, on_delete=models.CASCADE)  # Associar ao produtor logado
+    produtor = models.ForeignKey(Produtor, on_delete=models.CASCADE)  # Associar ao produtor logado
 
     def __str__(self):
         return f'{self.produto.nome} - {self.tipo_alteracao} - {self.quantidade}'
 
 class RelatorioEstoque(models.Model):
     produto = models.ForeignKey(Produto, on_delete=models.CASCADE)
-    produtor = models.ForeignKey(User, on_delete=models.CASCADE)  # Relacionamento com o usuário produtor
-    quantidade_alterada = models.PositiveIntegerField()  # Quantidade que foi alterada
-    tipo_alteracao = models.CharField(max_length=50)  # Tipo de alteração: 'Entrada' ou 'Remoção'
-    data_alteracao = models.DateTimeField(auto_now_add=True)  # Data da alteração
+    produtor = models.ForeignKey(Produtor, on_delete=models.SET_NULL, null=True, blank=True)  # Torna opcional
+    admin = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)  # Para gerentes
+    quantidade_alterada = models.IntegerField()
+    tipo_alteracao = models.CharField(max_length=50)
+    data = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'RelatorioEstoque'
 
     def __str__(self):
-        return f"Relatório de {self.produto.nome} - {self.tipo_alteracao} - {self.quantidade_alterada} unidades"
+        return f"{self.produto.nome} - {self.tipo_alteracao} por {self.produtor or self.admin.username}"
+
+
 
 class Pedido(models.Model):
-    produtor = models.ForeignKey(User, on_delete=models.CASCADE)
+    produtor = models.ForeignKey(Produtor, on_delete=models.SET_NULL, null=True, blank=True)
+    admin = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
     produto = models.ForeignKey(Produto, on_delete=models.CASCADE)
-    quantidade = models.IntegerField()
-    data = models.DateTimeField(auto_now_add=True)
+    quantidade = models.PositiveIntegerField()
     total = models.DecimalField(max_digits=10, decimal_places=2)
+    data_criacao = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"Pedido de {self.produtor.username} - {self.produto.nome} x {self.quantidade}"
+        return f"Pedido {self.id} - Produtor/Admin: {self.produtor or self.admin}"
+
+
+
+class LogSistema(models.Model):
+    produtor = models.ForeignKey(Produtor, on_delete=models.CASCADE)
+    acao = models.CharField(max_length=255)
+    data_entrada = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'LogSistema'
+
+    def __str__(self):
+        return f"{self.produtor.usuario} - {self.acao}"

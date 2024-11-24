@@ -43,8 +43,8 @@
         .menu button {
             background-color: #4CAF50;
             border: 2px solid #fff;
-            padding: 10px 25px;
-            font-size: 18px;
+            padding: 8px 20px;
+            font-size: 15px; /* Ajuste aqui o tamanho da fonte */
             font-weight: bold;
             border-radius: 15px;
             cursor: pointer;
@@ -122,11 +122,34 @@
         {% endif %}
 
         <div class="menu">
-            <a href="{% url 'menu_gerente_action' 'inicio' %}"><button>INICIO</button></a>
-            <a href="{% url 'menu_gerente_action' 'listar_produtos' %}"><button>Gerenciar Produtos</button></a>
-            <a href="{% url 'menu_gerente_action' 'listar_produtores' %}"><button>Gerenciar Produtores</button></a>
-            <a href="{% url 'menu_gerente_action' 'relatorio_estoque' %}"><button>Relatório do Estoque</button></a>
+            <!-- Primeira linha: Gerenciamento -->
+            <div class="menu-group">
+                <a href="{% url 'menu_gerente_action' 'inicio' %}">
+                    <button>INÍCIO</button>
+                </a>
+                <a href="{% url 'menu_gerente_action' 'listar_produtos' %}">
+                    <button>Gerenciar Produtos</button>
+                </a>
+                <a href="{% url 'menu_gerente_action' 'listar_produtores' %}">
+                    <button>Gerenciar Produtores</button>
+                </a>
+            </div>
+            <div class="menu-group">
+                <a href="{% url 'menu_gerente_action' 'estoque' %}">
+                    <button>Gerenciar Estoque</button>
+                </a>
+                <a href="{% url 'menu_gerente_action' 'gerar_pedidos' %}">
+                    <button>Gerar Pedidos</button>
+                </a>
+                <a href="{% url 'menu_gerente_action' 'relatorio_estoque' %}">
+                    <button>Relatório do Estoque</button>
+                </a>
+                <a href="{% url 'menu_gerente_action' 'log_sistema' %}">
+                    <button>Log do Sistema</button>
+                </a>
+            </div>
         </div>
+
 
         <div class="content-box" id="description">
             {% if action == 'inicio' %}
@@ -258,7 +281,7 @@
                     <button type="submit" class="btn-delete" style="width: auto;">Confirmar Exclusão</button>
                 </form>
 
-           {% elif action == 'relatorio_estoque' %}
+            {% elif action == 'relatorio_estoque' %}
                 <h2>Relatório de Estoque</h2>
                 <table>
                     <thead>
@@ -267,26 +290,138 @@
                             <th>Produtor</th>
                             <th>Quantidade Alterada</th>
                             <th>Tipo de Alteração</th>
-                            <th>Data da Alteração</th>
+                            <th>Data</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for relatorio in relatorios %}
+                        <tr>
+                            <td>{{ relatorio.produto.nome }}</td>
+                            <td>{{ relatorio.produtor.usuario }}</td>
+                            <td>{{ relatorio.quantidade_alterada }}</td>
+                            <td>{{ relatorio.tipo_alteracao }}</td>
+                            <td>{{ relatorio.data }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% elif action == 'estoque' %}
+                <h2>Gerenciar Estoque</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Produto</th>
+                            <th>Quantidade</th>
+                            <th>Ação</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for produto in produtos %}
                             <tr>
-                                <td>{{ relatorio.produto.nome }}</td>
-                                <td>{{ relatorio.produtor.username }}</td>
-                                <td>{{ relatorio.quantidade_alterada }}</td>
-                                <td>{{ relatorio.tipo_alteracao }}</td>
-                                <td>{{ relatorio.data_alteracao }}</td>
-                            </tr>
-                        {% empty %}
-                            <tr>
-                                <td colspan="5">Nenhuma alteração no estoque registrada.</td>
+                                <td>{{ produto.nome }}</td>
+                                <td>{{ produto.quantidade }}</td>
+                                <td>
+                                    <form method="post">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="produto_id" value="{{ produto.id }}">
+                                        <input type="number" name="quantidade" min="1" required>
+                                        <button type="submit" name="entrada">Entrada</button>
+                                        <button type="submit" name="remover">Saída</button>
+                                    </form>
+                                </td>
                             </tr>
                         {% endfor %}
                     </tbody>
                 </table>
-            {% endif %}
+            {% elif action == 'gerar_pedidos' %}
+                 <h2>Gerar Pedido</h2>
+                    <form method="post">
+                        {% csrf_token %}
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Produto</th>
+                                    <th>Tipo</th>
+                                    <th>Preço</th>
+                                    <th>Quantidade</th>
+
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for produto in produtos %}
+                                    <tr>
+                                        <td>{{ produto.nome }}</td>
+                                        <td>{{ produto.tipo }}</td>
+                                        <td>{{ produto.preco }}</td>
+                                        <td>
+                                            <form method="post">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="produto_id" value="{{ produto.id }}">
+                                                <input type="number" name="quantidade" min="1" max="{{ produto.quantidade }}" required>
+                                                <button type="submit" name="adicionar">Adicionar ao Carrinho</button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </form>
+
+                    {% if cart_items %}
+                        <h3>Carrinho de Compras:</h3>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Produto</th>
+                                    <th>Quantidade</th>
+                                    <th>Total</th>
+                                    <th>Ação</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in cart_items %}
+                                    <tr>
+                                        <td>{{ item.produto.nome }}</td>
+                                        <td>{{ item.quantidade }}</td>
+                                        <td>R$ {{ item.total }}</td>
+                                        <td>
+                                            <form method="post">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="produto_id" value="{{ item.produto.id }}">
+                                                <button type="submit" name="remover">Remover</button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                        <h3>Total do Pedido: R$ {{ total_pedido }}</h3>
+                        <form method="post">
+                            {% csrf_token %}
+                            <button type="submit" name="gerar_pedido">Gerar Pedido</button>
+                        </form>
+                    {% endif %}
+            {% elif action == 'log_sistema' %}
+                <h2>Log do Sistema</h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Produtor</th>
+                                <th>Ação</th>
+                                <th>Data</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for log in logs %}
+                            <tr>
+                                <td>{{ log.produtor.usuario }}</td>
+                                <td>{{ log.acao }}</td>
+                                <td>{{ log.data_entrada }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% endif %}
         </div>
     </div>
 </body>

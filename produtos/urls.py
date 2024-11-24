@@ -5,6 +5,9 @@ urlpatterns = [
     # Login URLs
     path('login/gerente/', views.login_gerente, name='login_gerente'),
     path('login/produtor/', views.login_produtor, name='login_produtor'),
+    path('logout/produtor/', views.logout_produtor, name='logout_produtor'),
+
+
 
     # Menu Gerente URLs com ações e parâmetros opcionais para ações específicas
     path('menu/gerente/', views.menu_gerente, name='menu_gerente'),  # Menu padrão do gerente

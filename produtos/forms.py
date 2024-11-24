@@ -33,11 +33,7 @@ class ProdutorForm(forms.ModelForm):
         model = Produtor
         fields = ['usuario', 'senha', 'nome', 'email', 'telefone', 'cpf']
 
-    def clean_senha(self):
-        senha = self.cleaned_data.get('senha')
-        if senha:
-            return make_password(senha)  # Se a senha for fornecida, faz o hash dela
-        return None
+
 
     class EstoqueForm(forms.ModelForm):
         class Meta:
